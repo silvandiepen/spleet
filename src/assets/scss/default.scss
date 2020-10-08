@@ -1,0 +1,17 @@
+// Variables
+$small: "screen and (max-width: 960px)";
+$large: "screen and (min-width: 961px)";
+
+$rounded: 0.5em;
+
+// Colors
+$blue: #00acee;
+$black: #101010;
+$red: #cc3030;
+
+$primary-color: var(--primary-color, $blue);
+$text-color: var(--text-color, $black);
+$error-color: var(--error-color, $red);
+
+$inactive-color: $blue;
+$shadow: 0 0 1em 0 rgba(0, 0, 0, 0.25);

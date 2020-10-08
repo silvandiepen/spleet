@@ -1,0 +1,17 @@
+@mixin shadow($type: '') {
+    @if $type == 'active' {
+        box-shadow: 0 -0.25em 0 0 rgba(0, 0, 0, 0.25) inset,
+            0.25em 0.25em 1em 0 to-opacity($primary-color, 0.5);
+        @debug $primary-color;
+        @debug to-opacity($primary-color, 0.25);
+    } @else if $type == 'error' {
+        box-shadow: 0 -0.25em 0 0 rgba(0, 0, 0, 0.25) inset,
+            0.25em 0.25em 1em 0 to-opacity($error-color, 0.5);
+    } @else if $type == 'large' {
+        box-shadow: 0 -0.25em 0 0 rgba(0, 0, 0, 0.25) inset,
+            0.25em 0.25em 10em 0 to-opacity($text-color, 0.25);
+    } @else {
+        box-shadow: 0 -0.25em 0 0 rgba(0, 0, 0, 0.25) inset,
+            0.25em 0.25em 1em 0 to-opacity($text-color, 0.25);
+    }
+}

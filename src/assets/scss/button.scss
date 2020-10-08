@@ -1,0 +1,8 @@
+.button {
+    border-radius: $rounded;
+    background-color: $primary-color;
+    border: none;
+    padding: 1em;
+    font-size: 1em;
+    @include shadow();
+}
