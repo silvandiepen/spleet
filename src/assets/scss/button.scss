@@ -6,3 +6,9 @@
     font-size: 1em;
     @include shadow();
 }
+.button-group {
+    display: flex;
+    .button + .button {
+        margin-left: 1em;
+    }
+}

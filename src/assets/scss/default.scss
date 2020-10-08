@@ -1,6 +1,6 @@
 // Variables
-$small: "screen and (max-width: 960px)";
-$large: "screen and (min-width: 961px)";
+$small: 'screen and (max-width: 960px)';
+$large: 'screen and (min-width: 961px)';
 
 $rounded: 0.5em;
 
@@ -15,3 +15,10 @@ $error-color: var(--error-color, $red);
 
 $inactive-color: $blue;
 $shadow: 0 0 1em 0 rgba(0, 0, 0, 0.25);
+
+$space: var(--space, 1em);
+@media #{$small} {
+    :root {
+        --space: 2em;
+    }
+}

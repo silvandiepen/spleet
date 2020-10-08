@@ -1,72 +1,87 @@
 <template>
     <div class="container" :class="{ 'copy-mode': state.copied.length > 0 }">
         <div class="sidebar">
-            <div class="settings">
-                <div class="input-block">
-                    <select id="input-chars" v-model="state.settings.chars">
-                        <option value="140">Short tweets</option>
-                        <option value="280">Long tweets</option></select
+            <div
+                class="settings"
+                :class="[
+                    state.showSettings
+                        ? 'settings--visible'
+                        : 'settings--invisible',
+                ]"
+            >
+                <button
+                    class="settings__toggle"
+                    @click="state.showSettings = !state.showSettings"
+                ></button>
+                <div class="settings__container">
+                    <div class="input-block">
+                        <select id="input-chars" v-model="state.settings.chars">
+                            <option value="140">Short tweets</option>
+                            <option value="280">Long tweets</option></select
+                        >
+                    </div>
+                    <div class="input-block">
+                        <div class="input-block__container">
+                            <input
+                                type="checkbox"
+                                id="input-numbering"
+                                v-model="state.settings.number.active"
+                            />
+                            <label for="input-numbering">Add numbering</label>
+                        </div>
+                    </div>
+                    <div
+                        v-if="state.settings.number.active"
+                        class="input-block input-block--switcher"
                     >
-                </div>
-                <div class="input-block">
-                    <div class="input-block__container">
-                        <input
-                            type="checkbox"
-                            id="input-numbering"
-                            v-model="state.settings.number.active"
-                        />
-                        <label for="input-numbering">Add numbering</label>
+                        <div class="input-block__container">
+                            <label
+                                for="input-start-number"
+                                @click="state.settings.number.position = true"
+                                :class="{
+                                    'label--is-active':
+                                        state.settings.number.position,
+                                }"
+                                >Start</label
+                            >
+                        </div>
+                        <div class="input-block__container">
+                            <label
+                                for="input-start-number"
+                                @click="state.settings.number.position = false"
+                                :class="{
+                                    'label--is-active': !state.settings.number
+                                        .position,
+                                }"
+                                >End</label
+                            >
+                        </div>
                     </div>
-                </div>
-                <div
-                    v-if="state.settings.number.active"
-                    class="input-block input-block--switcher"
-                >
-                    <div class="input-block__container">
-                        <label
-                            for="input-start-number"
-                            @click="state.settings.number.position = true"
-                            :class="{
-                                'label--is-active':
-                                    state.settings.number.position,
-                            }"
-                            >Start</label
-                        >
-                    </div>
-                    <div class="input-block__container">
-                        <label
-                            for="input-start-number"
-                            @click="state.settings.number.position = false"
-                            :class="{
-                                'label--is-active': !state.settings.number
-                                    .position,
-                            }"
-                            >End</label
-                        >
-                    </div>
-                </div>
-                <div class="input-block input-block--switcher">
-                    <div class="input-block__container">
-                        <label
-                            @click="state.settings.mode.enter = true"
-                            :class="{
-                                'label--is-active': state.settings.mode.enter,
-                            }"
-                            >Entersplit</label
-                        >
-                    </div>
-                    <div class="input-block__container">
-                        <label
-                            @click="state.settings.mode.enter = false"
-                            :class="{
-                                'label--is-active': !state.settings.mode.enter,
-                            }"
-                            >Autosplit</label
-                        >
+                    <div class="input-block input-block--switcher">
+                        <div class="input-block__container">
+                            <label
+                                @click="state.settings.mode.enter = true"
+                                :class="{
+                                    'label--is-active':
+                                        state.settings.mode.enter,
+                                }"
+                                >Entersplit</label
+                            >
+                        </div>
+                        <div class="input-block__container">
+                            <label
+                                @click="state.settings.mode.enter = false"
+                                :class="{
+                                    'label--is-active': !state.settings.mode
+                                        .enter,
+                                }"
+                                >Autosplit</label
+                            >
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="saved">
+            <div class="saved saved--desktop">
                 <ul class="saved__list">
                     <li
                         class="saved__tweet"
@@ -82,7 +97,10 @@
 
         <div class="input-column">
             <textarea v-model="state.input" @input="autoResize" />
-            <div>
+            <div class="button-group">
+                <button class="button" v-if="state.id > 0" @click="newTweet">
+                    New tweet
+                </button>
                 <button class="button" @click="saveTweet">Save tweet</button>
             </div>
         </div>
@@ -122,8 +140,23 @@
                 </li>
             </ul>
         </div>
+        <div class="saved saved--mobile">
+            <ul class="saved__list">
+                <li
+                    class="saved__tweet"
+                    v-for="tweet in state.savedTweets"
+                    :key="tweet.id"
+                    @click="loadTweet(tweet.id)"
+                >
+                    {{ capTweet(tweet.input, 100) }}
+                </li>
+            </ul>
+        </div>
     </div>
-    <div class="update" v-if="state.hasUpdate">
+    <div class="message message--copy message--bottom" v-if="state.lastCopy">
+        <strong>copied:</strong> {{ state.lastCopy }}
+    </div>
+    <div class="message message--update message--center" v-if="state.hasUpdate">
         <h3>We have an update for ya!</h3>
         <p>Do you want to keep this information, or the updated one?</p>
         <button @click="updateState">The updated one</button>
@@ -192,7 +225,9 @@ export default defineComponent({
                 chars: 140,
             },
             copied: [],
+            lastCopy: '',
             hasUpdate: false,
+            showSettings: false,
             savedTweets: getSavedTweets(),
         })
 
@@ -217,6 +252,10 @@ export default defineComponent({
             localStorage.setItem('saved', JSON.stringify(currentTweets))
         }
 
+        const newTweet = (): void => {
+            state.input = ''
+            state.id = 0
+        }
         const saveTweet = (): void => {
             const savingTweet = {
                 input: state.input,
@@ -322,6 +361,8 @@ export default defineComponent({
                 idx
             )
             state.copied.push(idx)
+            state.lastCopy = text
+            setTimeout(() => (state.lastCopy = ''), 2000)
         }
 
         // Return values
@@ -334,6 +375,7 @@ export default defineComponent({
             updateState,
             keepState,
             saveTweet,
+            newTweet,
             loadTweet,
             removeSavedTweet,
             capTweet,
@@ -376,41 +418,102 @@ ul {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    @media #{$small} {
+        width: 100%;
+    }
 }
 
 .saved {
+    &--mobile {
+        background-color: $primary-color;
+        @media #{$large} {
+            display: none;
+        }
+    }
+    &--desktop {
+        @media #{$small} {
+            display: none;
+        }
+    }
     &__list {
-        padding: 1em;
+        padding: $space;
     }
     &__tweet {
-        padding: 1em;
+        padding: $space;
         border-radius: $rounded;
+        @media #{$small} {
+            background-color: rgba(white, 0.5);
+        }
         @include shadow();
         & + & {
-            margin-top: 1em;
+            margin-top: $space;
         }
     }
 }
-.update {
+.message {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     padding: 1em;
     background-color: $primary-color;
     color: white;
     @include shadow('large');
     border-radius: $rounded;
+    &--center {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    &--bottom {
+        bottom: $space;
+        left: 50%;
+        transform: translateX(-50%);
+    }
 }
 
 .settings {
-    padding: 1em;
-    border-bottom: 1px solid $primary-color;
-    background-color: white;
-    display: flex;
-    justify-content: flex-start;
-    flex-direction: column;
-    align-items: flex-start;
+    @media #{$large} {
+        padding: $space;
+    }
+    &__toggle {
+        width: 3em;
+        height: 3em;
+        position: absolute;
+        top: 0;
+        right: 0;
+        transform: translate(-50%, 50%) scale(1);
+        background-color: $primary-color;
+        border-radius: 50%;
+        display: block;
+        z-index: 10;
+        border: none;
+        transition: transform 0.3s;
+        @media #{$large} {
+            transform: translate(-50%, 50%) scale(0);
+        }
+    }
+    &__container {
+        background-color: white;
+        display: flex;
+        justify-content: flex-start;
+        flex-direction: column;
+        align-items: flex-start;
+
+        @media #{$small} {
+            position: fixed;
+            top: $space;
+            left: 50%;
+            width: calc(100% - (#{$space} * 2));
+            z-index: 1;
+            transform: translateX(-50%) scale(0);
+            transform-origin: 100% 0;
+            padding: $space;
+            border-radius: $rounded;
+            background-color: $black;
+            transition: transform 0.3s;
+            .settings--visible & {
+                transform: translateX(-50%) scale(1);
+            }
+        }
+    }
 
     .copy-mode & {
         opacity: 0.5;
@@ -498,7 +601,7 @@ ul {
 }
 .input-column,
 .output-column {
-    padding: 1em;
+    padding: $space;
     @media #{$large} {
         width: 50%;
     }
@@ -511,7 +614,7 @@ ul {
         width: 100%;
         resize: auto;
         height: 100%;
-        padding: 1em;
+        padding: $space;
         border-radius: $rounded;
         transition: height 0.3s ease-in-out;
         // @include shadow();
@@ -526,11 +629,16 @@ ul {
             background-color: $primary-color;
         }
     }
-    .button {
+    .button-group {
         position: absolute;
         left: 50%;
         bottom: 2em;
         transform: translateX(-50%);
+        @media #{$small} {
+            right: 0;
+            left: auto;
+            transform: none;
+        }
     }
     .copy-mode & {
         opacity: 0.5;
@@ -539,11 +647,11 @@ ul {
 
 .tweets {
     &__tweet {
-        padding: 1em;
+        padding: $space;
         border-radius: $rounded;
         @include shadow();
         & + & {
-            margin-top: 1em;
+            margin-top: calc(#{$space}/ 2);
         }
         position: relative;
         &--copied {
