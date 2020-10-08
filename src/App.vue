@@ -504,7 +504,7 @@ ul {
             width: calc(100% - (#{$space} * 2));
             z-index: 1;
             transform: translateX(-50%) scale(0);
-            transform-origin: 100% 0;
+            // transform-origin: 100% 0;
             padding: $space;
             border-radius: $rounded;
             background-color: $black;
@@ -602,6 +602,8 @@ ul {
 .input-column,
 .output-column {
     padding: $space;
+    min-height: 50vh;
+    overflow: scroll;
     @media #{$large} {
         width: 50%;
     }
