@@ -1,14 +1,35 @@
 .button {
     border-radius: $rounded;
-    background-color: $primary-color;
+    background-image: linear-gradient(
+        to bottom,
+        $primary-color 50%,
+        lighten($blue, 10%)
+    );
+    background-size: 100% 200%;
     border: none;
     padding: 1em;
     font-size: 1em;
     @include shadow();
+    transition: background-position 0.3s;
+    &:hover {
+        background-position: 100% 100%;
+    }
+    &:focus {
+        outline: none;
+    }
 }
 .button-group {
     display: flex;
     .button + .button {
         margin-left: 1em;
     }
+}
+
+.button {
+    padding: 1em 2em;
+    line-height: 1;
+    display: inline-block;
+    background-color: blue;
+    color: white;
+    border-radius: 3px;
 }

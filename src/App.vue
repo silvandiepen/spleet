@@ -99,9 +99,9 @@
             <textarea v-model="state.input" @input="autoResize" />
             <div class="button-group">
                 <button class="button" v-if="state.id > 0" @click="newTweet">
-                    New tweet
+                    New
                 </button>
-                <button class="button" @click="saveTweet">Save tweet</button>
+                <button class="button" @click="saveTweet">Save</button>
             </div>
         </div>
 
@@ -191,6 +191,25 @@ interface SavedTweet {
     settings: Settings
     id: number
 }
+type Tweets = string[]
+
+interface SavedState {
+    copied: number[]
+    settings: Settings
+    input: string
+}
+
+interface State {
+    input: string
+    id: number
+    tweets: Tweets
+    settings: Settings
+    copied: number[]
+    lastCopy: string
+    hasUpdate: boolean
+    showSettings: boolean
+    savedTweets: SavedTweet[]
+}
 
 export default defineComponent({
     setup() {
@@ -202,7 +221,7 @@ export default defineComponent({
             )
             return currentTweets
         }
-        const state: any = reactive({
+        const state: State = reactive({
             input: 'one two three',
             id: 0,
             tweets: computed(() => {
@@ -303,7 +322,7 @@ export default defineComponent({
 
         // LocalState
         const createLocalState = (): string => {
-            const savableState = {
+            const savableState: SavedState = {
                 copied: state.copied,
                 settings: state.settings,
                 input: state.input,
@@ -311,18 +330,19 @@ export default defineComponent({
             return JSON.stringify(savableState || {})
         }
 
-        const getLocalState = () =>
+        const getLocalState = (): SavedState =>
             JSON.parse(localStorage.getItem('state') || '')
 
-        const recoverState = () => {
-            Object.keys(getLocalState()).forEach(v => {
-                console.log(v, getLocalState()[v])
-                state[v] = getLocalState()[v]
-            })
+        const recoverState = (): void => {
+            const localState = getLocalState()
+            state.copied = localState.copied
+            state.settings = localState.settings
+            state.input = localState.input
+
             state.hasUpdate = false
         }
 
-        const saveCurrentState = () => {
+        const saveCurrentState = (): void => {
             localStorage.setItem('state', createLocalState())
         }
 
@@ -357,7 +377,7 @@ export default defineComponent({
 
         const copyTweet = (text: string, idx: number) => {
             copy(
-                formatTweet(text, idx, state.tweets.total, state.settings),
+                formatTweet(text, idx, state.tweets.length, state.settings),
                 idx
             )
             state.copied.push(idx)
@@ -469,6 +489,18 @@ ul {
     }
 }
 
+@function repeat-radial-gradient($times, $gradient...) {
+    $gradients: '';
+    @for $i from 1 through $times {
+        $comma: ',';
+        @if $i == $times {
+            $comma: '';
+        }
+        $gradients: $gradients + 'radial-gradient(#{$gradient})#{$comma}';
+    }
+    @return unquote($gradients);
+}
+
 .settings {
     @media #{$large} {
         padding: $space;
@@ -481,6 +513,16 @@ ul {
         right: 0;
         transform: translate(-50%, 50%) scale(1);
         background-color: $primary-color;
+        background-image: repeat-radial-gradient(
+            9,
+            closest-side,
+            $white 100%,
+            transparent
+        );
+        background-size: 0.25em 0.25em;
+        background-repeat: no-repeat;
+        background-position: 33% 33%, 33% 50%, 33% 66%, 50% 66%, 50% 50%,
+            50% 66%, 66% 33%, 66% 50%, 66% 66%;
         border-radius: 50%;
         display: block;
         z-index: 10;
@@ -489,6 +531,7 @@ ul {
         @media #{$large} {
             transform: translate(-50%, 50%) scale(0);
         }
+        @include shadow();
     }
     &__container {
         background-color: white;
@@ -637,9 +680,11 @@ ul {
         bottom: 2em;
         transform: translateX(-50%);
         @media #{$small} {
-            right: 0;
-            left: auto;
-            transform: none;
+            //     right: 0;
+            //     left: auto;
+            //     transform: none;
+
+            transform: translate(-50%, 50%);
         }
     }
     .copy-mode & {
